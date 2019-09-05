@@ -18,8 +18,8 @@ class Bot(object):
         config.read('conf.ini')
         self.API_KEY = config['API_KEYS']['api_key']
         self.API_SECRET = config['API_KEYS']['api_secret']
-        self.priceMax = config['PRICES']['high']
-        self.priceMin = config['PRICES']['low']
+        self.priceMax = float(config['PRICES']['high'])
+        self.priceMin = float(config['PRICES']['low'])
         diff = self.priceMax - self.priceMin
         for f in self.fibLevels:
             self.fibList.append(self.priceMax - f * diff)

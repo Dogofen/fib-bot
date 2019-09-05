@@ -7,7 +7,7 @@ class Logger(object):
     FORMAT = '%(asctime)s:%(levelname)s: %(message)s'
 
     home = expanduser('~')
-    filename = '%s/git/python-binance/bot.log' % home
+    filename = '%s/git/fib-bot/bot.log' % home
 
     def __init__(self):
         logging.basicConfig(format=self.FORMAT, filename=self.filename, level=logging.INFO)
