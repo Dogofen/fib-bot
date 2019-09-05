@@ -1,4 +1,5 @@
 from binance.client import Client
+import configparser
 
 
 class Bot(object):
@@ -13,6 +14,10 @@ class Bot(object):
     fibList = []
 
     def __init__(self, logger):
+        config = configparser.ConfigParser()
+        config.read('conf.ini')
+        self.API_KEY = config['API_KEYS']['api_key']
+        self.API_SECRET = config['API_KEYS']['api_secret']
         diff = self.priceMax - self.priceMin
         for f in self.fibLevels:
             self.fibList.append(self.priceMax - f * diff)
