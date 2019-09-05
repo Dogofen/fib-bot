@@ -8,8 +8,8 @@ class Bot(object):
     SYMBOL = 'BTCUSDT'
     FEE = 0.01
 
-    priceMax = 12146.56
-    priceMin = 9119.17
+    priceMax = float()
+    priceMin = float()
     fibLevels = [1, 0.786, 0.618, 0.5, 0.382, 0.236, 0]
     fibList = []
 
@@ -18,6 +18,8 @@ class Bot(object):
         config.read('conf.ini')
         self.API_KEY = config['API_KEYS']['api_key']
         self.API_SECRET = config['API_KEYS']['api_secret']
+        self.priceMax = config['PRICES']['high']
+        self.priceMin = config['PRICES']['low']
         diff = self.priceMax - self.priceMin
         for f in self.fibLevels:
             self.fibList.append(self.priceMax - f * diff)
