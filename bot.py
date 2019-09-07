@@ -75,8 +75,12 @@ class Bot(object):
         newFibLevel = self.get_closest_fib_level(lastPrice)
         if newFibLevel == self.currentFibLevel:
             return False
-        elif abs(1 - lastPrice / list(newFibLevel.values())[0]) < 0.005:
-            self.logger.info('Fib Level has changed: {}'.format(newFibLevel))
+        elif abs(1 - lastPrice / list(newFibLevel.values())[0]) < 0.004:
+            self.logger.info('Value of current price nearing next Fib level, thus changing level: {}'.format(newFibLevel))
+            self.currentFibLevel = newFibLevel
+            return True
+        elif abs(list(newFibLevel.values())[0] - list(self.currentFibLevel.values())[0]) < abs(lastPrice - list(self.currentFibLevel.values())[0]):
+            self.logger.info('Value of current price has passed next Fib level, thus changing level: {}'.format(newFibLevel))
             self.currentFibLevel = newFibLevel
             return True
         else:
