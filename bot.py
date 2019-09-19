@@ -60,13 +60,21 @@ class Bot(object):
     def buy(self, _quantity):
         lastPrice = self.get_last_price()
         self.logger.info('Attempting to buy BTC at rate {} and quantity {}'.format(lastPrice, _quantity / lastPrice))
-        result = self.client.order_market_buy(symbol=self.SYMBOL, quantity=round(_quantity / lastPrice, 4))
+        result = False
+        try:
+            result = self.client.order_market_buy(symbol=self.SYMBOL, quantity=round(_quantity / lastPrice, 4))
+        except Exception as e:
+            self.logger.error('Caught an error during buy: {}'.format(e))
         self.logger.info('Result: {}'.format(result))
 
     def sell(self, _quantity):
         lastPrice = self.get_last_price()
         self.logger.info('Attempting to sell BTC at rate {} and quantity {}'.format(lastPrice, _quantity / lastPrice))
-        result = self.client.order_market_sell(symbol=self.SYMBOL, quantity=round(_quantity / lastPrice, 4))
+        result = False
+        try:
+            result = self.client.order_market_sell(symbol=self.SYMBOL, quantity=round(_quantity / lastPrice, 4))
+        except Exception as e:
+            self.logger.error('Caught an error during sell: {}'.format(e))
         self.logger.info('Result: {}'.format(result))
 
     def has_level_changed(self):
@@ -88,7 +96,7 @@ class Bot(object):
             return False
 
     def apply_strategy(self):
-        overAll = self.balance[0]['overall']
+        overAll = self.balance[0]['overall(usdt)']
         fibLevel = list(self.currentFibLevel.keys())[0]
         diff = overAll - overAll * fibLevel
         change = diff - float(self.balance[1]['free'])
