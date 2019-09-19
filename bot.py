@@ -45,7 +45,8 @@ class Bot(object):
         return {self.fibLevels[i]: self.fibList[i]}
 
     def get_balance(self, lastPrice):
-        return [{'overall': float(self.client.get_asset_balance(asset='BTC')['free']) * lastPrice + float(self.client.get_asset_balance(asset='USDT')['free'])},
+        return [{'overall(usdt)': float(self.client.get_asset_balance(asset='BTC')['free']) * lastPrice + float(self.client.get_asset_balance(asset='USDT')['free']),
+                 'overall(btc)': float(self.client.get_asset_balance(asset='BTC')['free']) + float(self.client.get_asset_balance(asset='USDT')['free'])/lastPrice},
                 self.client.get_asset_balance(asset='USDT'), self.client.get_asset_balance(asset='BTC')]
 
     def _init_session(self):
@@ -75,7 +76,7 @@ class Bot(object):
         newFibLevel = self.get_closest_fib_level(lastPrice)
         if newFibLevel == self.currentFibLevel:
             return False
-        elif abs(1 - lastPrice / list(newFibLevel.values())[0]) < 0.004:
+        elif abs(1 - lastPrice / list(newFibLevel.values())[0]) < 0.0009:
             self.logger.info('Value of current price nearing next Fib level, thus changing level: {}'.format(newFibLevel))
             self.currentFibLevel = newFibLevel
             return True
