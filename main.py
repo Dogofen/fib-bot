@@ -16,7 +16,7 @@ try:
                 if res is True:
                     logger.info('We have moved to a new fib level {}'.format(_bot.currentFibLevel))
                     _bot.apply_strategy()
-                time.sleep(20)
+                time.sleep(5)
             except Exception as e:
                 logger.error('caught an error during transaction {}'.format(e))
                 continue
