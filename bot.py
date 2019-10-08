@@ -1,31 +1,48 @@
 from binance.client import Client
 import configparser
+import datetime
 
 
 class Bot(object):
+    HIGH = 2
+    LOW = 3
     API_KEY = ''
     API_SECRET = ''
     SYMBOL = 'BTCUSDT'
     FEE = 0.01
 
+    intervalType = str()
+    interval = str()
     priceMax = float()
     priceMin = float()
     fibLevels = [1, 0.786, 0.618, 0.5, 0.382, 0.236, 0]
     fibList = []
 
     def __init__(self, logger):
+        self.logger = logger
         config = configparser.ConfigParser()
         config.read('conf.ini')
         self.API_KEY = config['API_KEYS']['api_key']
         self.API_SECRET = config['API_KEYS']['api_secret']
-        self.priceMax = float(config['PRICES']['high'])
-        self.priceMin = float(config['PRICES']['low'])
+        self.client = Client(self.API_KEY, self.API_SECRET)
+        self.interval = int(config['INTERVAL']['days'])
+        self.intervalType = config['INTERVAL']['type']
+        startDay = (datetime.datetime.now() - datetime.timedelta(days=self.interval)).strftime('%Y-%m-%d')
+        historical = self.client.get_historical_klines(self.SYMBOL, self.intervalType, startDay)
+        lows = list()
+        highs = list()
+        for h in historical:
+            lows.append(float(h[self.LOW]))
+            highs.append(float(h[self.HIGH]))
+        self.priceMax = max(highs)
+        self.priceMin = min(lows)
+
+    def create_fib_list(self):
+        self.fibList = list()
         diff = self.priceMax - self.priceMin
         for f in self.fibLevels:
             self.fibList.append(self.priceMax - f * diff)
-        self.client = Client(self.API_KEY, self.API_SECRET)
-        self.logger = logger
-        logger.info('bot initiated with fibonacci levels {}'.format(self.fibList))
+        self.logger.info('New Fibonacci levels were initiated {}'.format(self.fibList))
 
     def get_last_price(self):
         tickers = self.client.get_ticker()
@@ -51,6 +68,7 @@ class Bot(object):
 
     def _init_session(self):
         self.logger.info('Initiating a new trading session')
+        self.create_fib_list()
         lastPrice = self.get_last_price()
         self.currentFibLevel = self.get_closest_fib_level(lastPrice)
         self.balance = self.get_balance(lastPrice)
@@ -77,7 +95,30 @@ class Bot(object):
             self.logger.error('Caught an error during sell: {}'.format(e))
         self.logger.info('Result: {}'.format(result))
 
+    def update_min_max(self, minimum, maximum):
+        result = False
+        if minimum < self.priceMin:
+            self.logger.info('Updated new minimum to {}'.format(minimum))
+            self.priceMin = minimum
+            result = True
+        if maximum > self.priceMax:
+            self.logger.info('Updated new maximum to {}'.format(maximum))
+            self.priceMax = maximum
+            result = True
+        return result
+
     def has_level_changed(self):
+        startDay = (datetime.datetime.now() - datetime.timedelta(days=self.interval)).strftime('%Y-%m-%d')
+        historical = self.client.get_historical_klines(self.SYMBOL, self.intervalType, startDay)
+        lows = list()
+        highs = list()
+        for h in historical:
+            lows.append(float(h[self.LOW]))
+            highs.append(float(h[self.HIGH]))
+        result = self.update_min_max(min(lows), max(highs))
+        if result is True:
+            self.create_fib_list()
+
         lastPrice = self.get_last_price()
         self.balance = self.get_balance(lastPrice)
         self.logger.info('Current balance is: {}'.format(self.balance))
