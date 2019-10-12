@@ -27,15 +27,6 @@ class Bot(object):
         self.client = Client(self.API_KEY, self.API_SECRET)
         self.interval = int(config['INTERVAL']['days'])
         self.intervalType = config['INTERVAL']['type']
-        startDay = (datetime.datetime.now() - datetime.timedelta(days=self.interval)).strftime('%Y-%m-%d')
-        historical = self.client.get_historical_klines(self.SYMBOL, self.intervalType, startDay)
-        lows = list()
-        highs = list()
-        for h in historical:
-            lows.append(float(h[self.LOW]))
-            highs.append(float(h[self.HIGH]))
-        self.priceMax = max(highs)
-        self.priceMin = min(lows)
 
     def create_fib_list(self):
         self.fibList = list()
@@ -51,6 +42,18 @@ class Bot(object):
         )
         self.logger.info('Last price on Binance is {}'.format(ticker['lastPrice']))
         return float(ticker['lastPrice'])
+
+    def get_min_max(self):
+        startDay = (datetime.datetime.now() - datetime.timedelta(days=self.interval)).strftime('%Y-%m-%d')
+        historical = self.client.get_historical_klines(self.SYMBOL, self.intervalType, startDay)
+        historical = historical[-(self.interval*24 - 1):]
+        lows = list()
+        highs = list()
+        for h in historical:
+            lows.append(float(h[self.LOW]))
+            highs.append(float(h[self.HIGH]))
+        return [min(lows), max(highs)]
+
 
     def get_closest_fib_level(self, Number):
         aux = []
@@ -68,6 +71,7 @@ class Bot(object):
 
     def _init_session(self):
         self.logger.info('Initiating a new trading session')
+        self.priceMin, self.priceMax = self.get_min_max()
         self.create_fib_list()
         lastPrice = self.get_last_price()
         self.currentFibLevel = self.get_closest_fib_level(lastPrice)
@@ -108,14 +112,8 @@ class Bot(object):
         return result
 
     def has_level_changed(self):
-        startDay = (datetime.datetime.now() - datetime.timedelta(days=self.interval)).strftime('%Y-%m-%d')
-        historical = self.client.get_historical_klines(self.SYMBOL, self.intervalType, startDay)
-        lows = list()
-        highs = list()
-        for h in historical:
-            lows.append(float(h[self.LOW]))
-            highs.append(float(h[self.HIGH]))
-        result = self.update_min_max(min(lows), max(highs))
+        minimum, maximum = self.get_min_max()
+        result = self.update_min_max(minimum, maximum)
         if result is True:
             self.create_fib_list()
 
