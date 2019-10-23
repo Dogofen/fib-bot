@@ -101,11 +101,11 @@ class Bot(object):
 
     def update_min_max(self, minimum, maximum):
         result = False
-        if minimum < self.priceMin:
+        if minimum != self.priceMin:
             self.logger.info('Updated new minimum to {}'.format(minimum))
             self.priceMin = minimum
             result = True
-        if maximum > self.priceMax:
+        if maximum != self.priceMax:
             self.logger.info('Updated new maximum to {}'.format(maximum))
             self.priceMax = maximum
             result = True
